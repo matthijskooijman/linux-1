@@ -98,7 +98,11 @@ static int of_platform_serial_setup(struct platform_device *ofdev,
 		port->regshift = prop;
 
 	port->irq = irq_of_parse_and_map(np, 0);
+#if defined(CONFIG_MIPS_ALCHEMY) || defined(CONFIG_SERIAL_8250_RT288X)
+	port->iotype = UPIO_AU;
+#else
 	port->iotype = UPIO_MEM;
+#endif
 	if (of_property_read_u32(np, "reg-io-width", &prop) == 0) {
 		switch (prop) {
 		case 1:
