@@ -15,6 +15,12 @@ choice
 		select USB_ARCH_HAS_OHCI
 		select USB_ARCH_HAS_EHCI
 
+	config SOC_RT3883
+		bool "RT3883"
+		select USB_ARCH_HAS_HCD
+		select USB_ARCH_HAS_OHCI
+		select USB_ARCH_HAS_EHCI
+
 endchoice
 
 choice
@@ -29,6 +35,10 @@ choice
 	config DTB_RT305X_EVAL
 		bool "RT305x eval kit"
 		depends on SOC_RT305X
+
+	config DTB_RT3883_EVAL
+		bool "RT3883 eval kit"
+		depends on SOC_RT3883
 
 endchoice
 
