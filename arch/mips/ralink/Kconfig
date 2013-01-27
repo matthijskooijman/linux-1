@@ -8,6 +8,7 @@ choice
 
 	config SOC_RT288X
 		bool "RT288x"
+		select HW_HAS_PCI
 
 	config SOC_RT305X
 		bool "RT305x"
@@ -35,6 +36,10 @@ choice
 
 	config DTB_RT_NONE
 		bool "None"
+
+	config DTB_RT2880_EVAL
+		bool "RT2880 eval kit"
+		depends on SOC_RT288X
 
 	config DTB_RT305X_EVAL
 		bool "RT305x eval kit"
