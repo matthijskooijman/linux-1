@@ -21,6 +21,10 @@ choice
 		select USB_ARCH_HAS_OHCI
 		select USB_ARCH_HAS_EHCI
 
+	config SOC_MTK7620
+		bool "MTK7620"
+		select HW_HAS_PCI
+
 endchoice
 
 choice
@@ -39,6 +43,10 @@ choice
 	config DTB_RT3883_EVAL
 		bool "RT3883 eval kit"
 		depends on SOC_RT3883
+
+	config DTB_MTK7620_EVAL
+		bool "MTK7620 eval kit"
+		depends on SOC_MTK7620
 
 endchoice
 
