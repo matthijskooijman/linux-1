@@ -2727,7 +2727,7 @@ int dwc2_get_hwparams(struct dwc2_hsotg *hsotg)
  * for the DWC_otg core. It returns non-0 if any parameters are invalid.
  */
 int dwc2_set_parameters(struct dwc2_hsotg *hsotg,
-			struct dwc2_core_params *params)
+			const struct dwc2_core_params *params)
 {
 	int retval = 0;
 

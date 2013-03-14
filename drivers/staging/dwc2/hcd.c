@@ -2691,7 +2691,7 @@ static void dwc2_set_uninitialized(int *p, int size)
  * a negative error on failure.
  */
 int dwc2_hcd_init(struct dwc2_hsotg *hsotg, int irq,
-		  struct dwc2_core_params *params)
+		  const struct dwc2_core_params *params)
 {
 	struct usb_hcd *hcd;
 	struct dwc2_host_chan *channel;
