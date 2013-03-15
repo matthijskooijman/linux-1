@@ -22,9 +22,10 @@ struct ralink_pinmux {
 	struct ralink_pinmux_grp *mode;
 	struct ralink_pinmux_grp *uart;
 	int uart_shift;
+	u32 uart_mask;
 	void (*wdt_reset)(void);
 };
-extern struct ralink_pinmux gpio_pinmux;
+extern struct ralink_pinmux rt_pinmux;
 
 struct ralink_soc_info {
 	unsigned char sys_type[RAMIPS_SYS_TYPE_LEN];
@@ -40,5 +41,7 @@ extern void ralink_clk_add(const char *dev, unsigned long rate);
 extern void prom_soc_init(struct ralink_soc_info *soc_info);
 
 __iomem void *plat_of_remap_node(const char *node);
+
+void ralink_pinmux(void);
 
 #endif /* _RALINK_COMMON_H__ */
