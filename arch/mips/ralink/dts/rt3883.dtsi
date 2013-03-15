@@ -87,7 +87,20 @@
 			gpio-controller;
 			#gpio-cells = <2>;
 
-			ralink,ngpio = <12>;
+			ralink,ngpio = <32>;
+			ralink,regs = [ 00 04 08 0c
+					10 14 18 1c
+					20 24 ];
+		};
+
+		gpio3: gpio@688 {
+			compatible = "ralink,rt3883-gpio", "ralink,rt2880-gpio";
+			reg = <0x688 0x24>;
+
+			gpio-controller;
+			#gpio-cells = <2>;
+
+			ralink,ngpio = <24>;
 			ralink,regs = [ 00 04 08 0c
 					10 14 18 1c
 					20 24 ];

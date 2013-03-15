@@ -22,4 +22,4 @@ load-$(CONFIG_SOC_RT3883)	+= 0xffffffff80000000
 #
 # Ralink RT3883
 #
-load-$(CONFIG_SOC_MTK7620)	+= 0xffffffff80000000
+load-$(CONFIG_SOC_MT7620)	+= 0xffffffff80000000

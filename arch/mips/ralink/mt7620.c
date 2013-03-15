@@ -16,7 +16,7 @@
 
 #include <asm/mipsregs.h>
 #include <asm/mach-ralink/ralink_regs.h>
-#include <asm/mach-ralink/mtk7620.h>
+#include <asm/mach-ralink/mt7620.h>
 
 #include "common.h"
 
@@ -24,63 +24,63 @@
 struct ralink_pinmux_grp mode_mux[] = {
 	{
 		.name = "i2c",
-		.mask = MTK7620_GPIO_MODE_I2C,
+		.mask = MT7620_GPIO_MODE_I2C,
 		.gpio_first = 1,
 		.gpio_last = 2,
 	}, {
 		.name = "spi",
-		.mask = MTK7620_GPIO_MODE_SPI,
+		.mask = MT7620_GPIO_MODE_SPI,
 		.gpio_first = 3,
 		.gpio_last = 6,
 	}, {
 		.name = "uartlite",
-		.mask = MTK7620_GPIO_MODE_UART1,
+		.mask = MT7620_GPIO_MODE_UART1,
 		.gpio_first = 15,
 		.gpio_last = 16,
 	}, {
 		.name = "wdt",
-		.mask = MTK7620_GPIO_MODE_WDT,
+		.mask = MT7620_GPIO_MODE_WDT,
 		.gpio_first = 17,
 		.gpio_last = 17,
 	}, {
 		.name = "mdio",
-		.mask = MTK7620_GPIO_MODE_MDIO,
+		.mask = MT7620_GPIO_MODE_MDIO,
 		.gpio_first = 22,
 		.gpio_last = 23,
 	}, {
 		.name = "rgmii1",
-		.mask = MTK7620_GPIO_MODE_RGMII1,
+		.mask = MT7620_GPIO_MODE_RGMII1,
 		.gpio_first = 24,
 		.gpio_last = 35,
 	}, {
 		.name = "spi refclk",
-		.mask = MTK7620_GPIO_MODE_SPI_REF_CLK,
+		.mask = MT7620_GPIO_MODE_SPI_REF_CLK,
 		.gpio_first = 37,
 		.gpio_last = 39,
 	}, {
 		.name = "jtag",
-		.mask = MTK7620_GPIO_MODE_JTAG,
+		.mask = MT7620_GPIO_MODE_JTAG,
 		.gpio_first = 40,
 		.gpio_last = 44,
 	}, {
 		/* shared lines with jtag */
 		.name = "ephy",
-		.mask = MTK7620_GPIO_MODE_EPHY,
+		.mask = MT7620_GPIO_MODE_EPHY,
 		.gpio_first = 40,
 		.gpio_last = 44,
 	}, {
 		.name = "nand",
-		.mask = MTK7620_GPIO_MODE_JTAG,
+		.mask = MT7620_GPIO_MODE_JTAG,
 		.gpio_first = 45,
 		.gpio_last = 59,
 	}, {
 		.name = "rgmii2",
-		.mask = MTK7620_GPIO_MODE_RGMII2,
+		.mask = MT7620_GPIO_MODE_RGMII2,
 		.gpio_first = 60,
 		.gpio_last = 71,
 	}, {
 		.name = "wled",
-		.mask = MTK7620_GPIO_MODE_WLED,
+		.mask = MT7620_GPIO_MODE_WLED,
 		.gpio_first = 72,
 		.gpio_last = 72,
 	}, {0}
@@ -90,42 +90,42 @@ struct ralink_pinmux_grp mode_mux[] = {
 struct ralink_pinmux_grp uart_mux[] = {
 	{
 		.name = "uartf",
-		.mask = MTK7620_GPIO_MODE_UARTF,
+		.mask = MT7620_GPIO_MODE_UARTF,
 		.gpio_first = 7,
 		.gpio_last = 14,
 	}, {
 		.name = "pcm uartf",
-		.mask = MTK7620_GPIO_MODE_PCM_UARTF,
+		.mask = MT7620_GPIO_MODE_PCM_UARTF,
 		.gpio_first = 7,
 		.gpio_last = 14,
 	}, {
 		.name = "pcm i2s",
-		.mask = MTK7620_GPIO_MODE_PCM_I2S,
+		.mask = MT7620_GPIO_MODE_PCM_I2S,
 		.gpio_first = 7,
 		.gpio_last = 14,
 	}, {
 		.name = "i2s uartf",
-		.mask = MTK7620_GPIO_MODE_I2S_UARTF,
+		.mask = MT7620_GPIO_MODE_I2S_UARTF,
 		.gpio_first = 7,
 		.gpio_last = 14,
 	}, {
 		.name = "pcm gpio",
-		.mask = MTK7620_GPIO_MODE_PCM_GPIO,
+		.mask = MT7620_GPIO_MODE_PCM_GPIO,
 		.gpio_first = 11,
 		.gpio_last = 14,
 	}, {
 		.name = "gpio uartf",
-		.mask = MTK7620_GPIO_MODE_GPIO_UARTF,
+		.mask = MT7620_GPIO_MODE_GPIO_UARTF,
 		.gpio_first = 7,
 		.gpio_last = 10,
 	}, {
 		.name = "gpio i2s",
-		.mask = MTK7620_GPIO_MODE_GPIO_I2S,
+		.mask = MT7620_GPIO_MODE_GPIO_I2S,
 		.gpio_first = 7,
 		.gpio_last = 10,
 	}, {
 		.name = "gpio",
-		.mask = MTK7620_GPIO_MODE_GPIO,
+		.mask = MT7620_GPIO_MODE_GPIO,
 	}, {0}
 };
 /*
@@ -142,7 +142,7 @@ void rt305x_wdt_reset(void)
 struct ralink_pinmux gpio_pinmux = {
 	.mode = mode_mux,
 	.uart = uart_mux,
-	.uart_shift = MTK7620_GPIO_MODE_UART0_SHIFT,
+	.uart_shift = MT7620_GPIO_MODE_UART0_SHIFT,
 //	.wdt_reset = rt305x_wdt_reset,
 };
 
@@ -152,10 +152,10 @@ void __init ralink_clk_init(void)
 	u32 c0 = rt_sysc_r32(SYSC_REG_CPLL_CONFIG0);
 	u32 c1 = rt_sysc_r32(SYSC_REG_CPLL_CONFIG1);
 
-	c0 = (c0 >> MTK7620_CPLL_SW_CONFIG_SHIFT) &
-		MTK7620_CPLL_SW_CONFIG_MASK;
-	c1 = (c1 >> MTK7620_CPLL_CPU_CLK_SHIFT) &
-	     MTK7620_CPLL_CPU_CLK_MASK;
+	c0 = (c0 >> MT7620_CPLL_SW_CONFIG_SHIFT) &
+		MT7620_CPLL_SW_CONFIG_MASK;
+	c1 = (c1 >> MT7620_CPLL_CPU_CLK_SHIFT) &
+	     MT7620_CPLL_CPU_CLK_MASK;
 	if (c1 == 0x01) {
 		cpu_rate = 480000000;
 	} else {
@@ -177,8 +177,8 @@ void __init ralink_clk_init(void)
 
 void __init ralink_of_remap(void)
 {
-	rt_sysc_membase = plat_of_remap_node("ralink,mtk7620-sysc");
-	rt_memc_membase = plat_of_remap_node("ralink,mtk7620-memc");
+	rt_sysc_membase = plat_of_remap_node("ralink,mt7620-sysc");
+	rt_memc_membase = plat_of_remap_node("ralink,mt7620-memc");
 
 	if (!rt_sysc_membase || !rt_memc_membase)
 		panic("Failed to remap core resources");
@@ -186,7 +186,7 @@ void __init ralink_of_remap(void)
 
 void prom_soc_init(struct ralink_soc_info *soc_info)
 {
-	void __iomem *sysc = (void __iomem *) KSEG1ADDR(MTK7620_SYSC_BASE);
+	void __iomem *sysc = (void __iomem *) KSEG1ADDR(MT7620_SYSC_BASE);
 	unsigned char *name = NULL;
 	u32 n0;
 	u32 n1;
@@ -195,14 +195,14 @@ void prom_soc_init(struct ralink_soc_info *soc_info)
 	n0 = __raw_readl(sysc + SYSC_REG_CHIP_NAME0);
 	n1 = __raw_readl(sysc + SYSC_REG_CHIP_NAME1);
 
-	if (n0 == MTK7620N_CHIP_NAME0 && n1 == MTK7620N_CHIP_NAME1) {
-		name = "MTK7620N";
-		soc_info->compatible = "ralink,mtk7620n-soc";
-	} else if (n0 == MTK7620A_CHIP_NAME0 && n1 == MTK7620A_CHIP_NAME1) {
-		name = "MTK7620A";
-		soc_info->compatible = "ralink,mtk7620a-soc";
+	if (n0 == MT7620N_CHIP_NAME0 && n1 == MT7620N_CHIP_NAME1) {
+		name = "MT7620N";
+		soc_info->compatible = "ralink,mt7620n-soc";
+	} else if (n0 == MT7620A_CHIP_NAME0 && n1 == MT7620A_CHIP_NAME1) {
+		name = "MT7620A";
+		soc_info->compatible = "ralink,mt7620a-soc";
 	} else {
-		printk("mtk7620: unknown SoC, n0:%08x n1:%08x\n", n0, n1);
+		printk("mt7620: unknown SoC, n0:%08x n1:%08x\n", n0, n1);
 	}
 
 	rev = __raw_readl(sysc + SYSC_REG_CHIP_REV);
