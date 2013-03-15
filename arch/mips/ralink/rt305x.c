@@ -97,9 +97,6 @@ struct ralink_pinmux_grp uart_mux[] = {
 		.mask = RT305X_GPIO_MODE_GPIO_I2S,
 		.gpio_first = RT305X_GPIO_7,
 		.gpio_last = RT305X_GPIO_14,
-	}, {
-		.name = "gpio",
-		.mask = RT305X_GPIO_MODE_GPIO,
 	}, {0}
 };
 
@@ -114,10 +111,11 @@ void rt305x_wdt_reset(void)
 	rt_sysc_w32(t, SYSC_REG_SYSTEM_CONFIG);
 }
 
-struct ralink_pinmux gpio_pinmux = {
+struct ralink_pinmux rt_pinmux = {
 	.mode = mode_mux,
 	.uart = uart_mux,
 	.uart_shift = RT305X_GPIO_MODE_UART0_SHIFT,
+	.uart_mask = RT305X_GPIO_MODE_GPIO,
 	.wdt_reset = rt305x_wdt_reset,
 };
 

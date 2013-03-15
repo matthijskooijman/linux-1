@@ -101,6 +101,8 @@ static int __init plat_of_setup(void)
 	if (of_platform_populate(NULL, of_ids, NULL, NULL))
 		panic("failed to populate DT\n");
 
+	ralink_pinmux();
+
 	return 0;
 }
 
