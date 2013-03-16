@@ -208,6 +208,7 @@ void rt2x00pci_uninitialize(struct rt2x00_dev *rt2x00dev)
 }
 EXPORT_SYMBOL_GPL(rt2x00pci_uninitialize);
 
+#ifdef CONFIG_PCI
 /*
  * PCI driver handlers.
  */
@@ -392,6 +393,7 @@ int rt2x00pci_resume(struct pci_dev *pci_dev)
 }
 EXPORT_SYMBOL_GPL(rt2x00pci_resume);
 #endif /* CONFIG_PM */
+#endif /* CONFIG_PCI */
 
 /*
  * rt2x00pci module information.
