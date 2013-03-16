@@ -63,6 +63,7 @@ config RT2800PCI
 	select RT2X00_LIB_CRYPTO
 	select CRC_CCITT
 	select EEPROM_93CX6
+	select MTD if SOC_RT288X || SOC_RT305X
 	---help---
 	  This adds support for rt27xx/rt28xx/rt30xx wireless chipset family.
 	  Supported chips: RT2760, RT2790, RT2860, RT2880, RT2890, RT3052,
