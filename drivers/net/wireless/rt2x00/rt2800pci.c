@@ -39,6 +39,8 @@
 #include <linux/pci.h>
 #include <linux/platform_device.h>
 #include <linux/eeprom_93cx6.h>
+#include <linux/mtd/mtd.h>
+#include <linux/mtd/partitions.h>
 
 #include "rt2x00.h"
 #include "rt2x00pci.h"
@@ -92,15 +94,45 @@ static void rt2800pci_mcu_status(struct rt2x00_dev *rt2x00dev, const u8 token)
 #if defined(CONFIG_SOC_RT288X) || defined(CONFIG_SOC_RT305X)
 static int rt2800pci_read_eeprom_soc(struct rt2x00_dev *rt2x00dev)
 {
-	void __iomem *base_addr = ioremap(0x1F040000, EEPROM_SIZE);
+	struct device_node *np = rt2x00dev->dev->of_node, *mtd_np = NULL;
+	size_t retlen, len = EEPROM_SIZE;
+	int ret, size, offset = 0;
+	struct mtd_info *mtd;
+	const char *part;
+	const __be32 *list;
+	phandle phandle;
 
-	if (!base_addr)
-		return -ENOMEM;
+	list = of_get_property(np, "ralink,eeprom", &size);
+	if (!list) {
+		dev_err(rt2x00dev->dev, "failed to load eeprom property\n");
+		return -ENOENT;
+	}
 
-	memcpy_fromio(rt2x00dev->eeprom, base_addr, EEPROM_SIZE);
+	phandle = be32_to_cpup(list++);
+	if (phandle)
+		mtd_np = of_find_node_by_phandle(phandle);
+	if (!mtd_np) {
+		dev_err(rt2x00dev->dev, "failed to load mtd phandle\n");
+		return -ENOENT;
+	}
 
-	iounmap(base_addr);
-	return 0;
+	part = of_get_property(mtd_np, "label", NULL);
+	if (!part)
+		part = mtd_np->name;
+
+	mtd = get_mtd_device_nm(part);
+	if (IS_ERR(mtd)) {
+		dev_err(rt2x00dev->dev, "failed to get mtd device \"%s\"\n", part);
+		return PTR_ERR(mtd);
+	}
+
+	if (size > sizeof(*list))
+		offset = be32_to_cpup(list);
+
+	ret = mtd_read(mtd, offset, len, &retlen, (u_char *) rt2x00dev->eeprom);
+	put_mtd_device(mtd);
+
+	return ret;
 }
 #else
 static inline int rt2800pci_read_eeprom_soc(struct rt2x00_dev *rt2x00dev)
