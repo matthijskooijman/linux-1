@@ -44,8 +44,11 @@ extern void __dt_setup_arch(struct boot_param_header *bph);
 	__dt_setup_arch(&__dtb_##sym##_begin);				\
 })
 
+extern char *of_mips_get_machine_name(void);
+
 #else /* CONFIG_OF */
 static inline void device_tree_init(void) { }
+static char *of_mips_get_machine_name(void) { return NULL; }
 #endif /* CONFIG_OF */
 
 #endif /* __ASM_PROM_H */

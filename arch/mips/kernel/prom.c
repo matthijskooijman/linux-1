@@ -23,6 +23,13 @@
 #include <asm/page.h>
 #include <asm/prom.h>
 
+static char of_mips_machine_name[64] = "Unknown";
+
+char *of_mips_get_machine_name(void)
+{
+	return of_mips_machine_name;
+}
+
 int __init early_init_dt_scan_memory_arch(unsigned long node,
 					  const char *uname, int depth,
 					  void *data)
@@ -50,6 +57,20 @@ void __init early_init_dt_setup_initrd_arch(unsigned long start,
 }
 #endif
 
+int __init early_init_dt_scan_model(unsigned long node,
+	const char *uname, int depth,
+	void *data)
+{
+	if (!depth) {
+		char *model = of_get_flat_dt_prop(node, "model", NULL);
+		if (model) {
+			snprintf(of_mips_machine_name, sizeof(of_mips_machine_name), model);
+			pr_info("MIPS: machine is %s\n", of_mips_machine_name);
+		}
+	}
+	return 0;
+}
+
 void __init early_init_devtree(void *params)
 {
 	/* Setup flat device-tree pointer */
@@ -65,6 +86,9 @@ void __init early_init_devtree(void *params)
 	/* Scan memory nodes */
 	of_scan_flat_dt(early_init_dt_scan_root, NULL);
 	of_scan_flat_dt(early_init_dt_scan_memory_arch, NULL);
+
+	/* try to load the mips machine name */
+	of_scan_flat_dt(early_init_dt_scan_model, NULL);
 }
 
 void __init __dt_setup_arch(struct boot_param_header *bph)

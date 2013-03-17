@@ -12,6 +12,7 @@
 #include <asm/cpu-features.h>
 #include <asm/mipsregs.h>
 #include <asm/processor.h>
+#include <asm/prom.h>
 #include <asm/mips_machine.h>
 
 unsigned int vced_count, vcei_count;
@@ -34,7 +35,10 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 	 */
 	if (n == 0) {
 		seq_printf(m, "system type\t\t: %s\n", get_system_type());
-		if (mips_get_machine_name())
+		if (of_mips_get_machine_name())
+			seq_printf(m, "machine\t\t\t: %s\n",
+				   of_mips_get_machine_name());
+		else if (mips_get_machine_name())
 			seq_printf(m, "machine\t\t\t: %s\n",
 				   mips_get_machine_name());
 	}
