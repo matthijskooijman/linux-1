@@ -183,6 +183,12 @@ static int ehci_platform_resume(struct device *dev)
 #define ehci_platform_resume	NULL
 #endif /* CONFIG_PM */
 
+static const struct of_device_id ehci_match_table[] = {
+	{ .compatible = "ehci-platform" },
+	{},
+};
+MODULE_DEVICE_TABLE(of, ehci_match_table);
+
 static const struct platform_device_id ehci_platform_table[] = {
 	{ "ehci-platform", 0 },
 	{ }
@@ -203,6 +209,7 @@ static struct platform_driver ehci_platform_driver = {
 		.owner	= THIS_MODULE,
 		.name	= "ehci-platform",
 		.pm	= &ehci_platform_pm_ops,
+		.of_match_table = ehci_match_table,
 	}
 };
 
