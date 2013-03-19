@@ -15,4 +15,4 @@ obj-$(CONFIG_SOC_MT7620) += mt7620.o
 
 obj-$(CONFIG_EARLY_PRINTK) += early_printk.o
 
-obj-y += dts/
+#obj-y += dts/
