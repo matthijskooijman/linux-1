@@ -146,6 +146,11 @@ struct ralink_pinmux rt_pinmux = {
 //	.wdt_reset = rt305x_wdt_reset,
 };
 
+void ralink_usb_platform(void)
+{
+
+}
+
 void __init ralink_clk_init(void)
 {
 	unsigned long cpu_rate, sys_rate;

@@ -102,6 +102,7 @@ static int __init plat_of_setup(void)
 		panic("failed to populate DT\n");
 
 	ralink_pinmux();
+	ralink_usb_platform();
 
 	return 0;
 }
