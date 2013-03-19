@@ -43,5 +43,6 @@ extern void prom_soc_init(struct ralink_soc_info *soc_info);
 __iomem void *plat_of_remap_node(const char *node);
 
 void ralink_pinmux(void);
+void ralink_usb_platform(void);
 
 #endif /* _RALINK_COMMON_H__ */

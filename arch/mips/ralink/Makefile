@@ -9,7 +9,7 @@
 obj-y := prom.o of.o reset.o clk.o irq.o pinmux.o
 
 obj-$(CONFIG_SOC_RT288X) += rt288x.o
-obj-$(CONFIG_SOC_RT305X) += rt305x.o
+obj-$(CONFIG_SOC_RT305X) += rt305x.o rt305x-usb.o
 obj-$(CONFIG_SOC_RT3883) += rt3883.o
 obj-$(CONFIG_SOC_MTK7620) += mtk7620.o
 
