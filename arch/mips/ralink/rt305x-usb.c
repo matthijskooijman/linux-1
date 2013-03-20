@@ -93,7 +93,7 @@ static struct usb_ohci_pdata rt3352_ohci_data = {
 	.power_off	= rt3352_usb_power_off,
 };
 
-static void ralink_add_usb(char *name, void *pdata, u64 mask)
+static void ralink_add_usb(char *name, void *pdata, u64 *mask)
 {
 	struct device_node *node;
 	struct platform_device *pdev;
@@ -107,8 +107,8 @@ static void ralink_add_usb(char *name, void *pdata, u64 mask)
 		return;
 
 	pdev->dev.platform_data = pdata;
-	pdev->dev.dma_mask = &mask,
-	pdev->dev.coherent_dma_mask = mask,
+	pdev->dev.dma_mask = mask;
+	pdev->dev.coherent_dma_mask = *mask;
 	of_node_put(node);
 }
 
@@ -119,8 +119,8 @@ void ralink_usb_platform(void)
 {
 	if (soc_is_rt3352() || soc_is_rt5350()) {
 		ralink_add_usb("ohci-platform",
-				&rt3352_ohci_data, rt3352_ohci_dmamask);
+				&rt3352_ohci_data, &rt3352_ohci_dmamask);
 		ralink_add_usb("ehci-platform",
-				&rt3352_ehci_data, rt3352_ehci_dmamask);
+				&rt3352_ehci_data, &rt3352_ehci_dmamask);
 	}
 }
