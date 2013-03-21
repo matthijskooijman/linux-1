@@ -2819,7 +2819,7 @@ int dwc2_hcd_init(struct dwc2_hsotg *hsotg, int irq,
 	dwc2_disable_global_interrupts(hsotg);
 
 	/* Create new workqueue and init work */
-	hsotg->wq_otg = create_singlethread_workqueue("dwc_otg");
+	hsotg->wq_otg = create_singlethread_workqueue("dwc2");
 	if (!hsotg->wq_otg) {
 		dev_err(hsotg->dev, "Failed to create workqueue\n");
 		goto error2;
