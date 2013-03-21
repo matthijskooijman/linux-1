@@ -40,16 +40,9 @@
  */
 #include <linux/kernel.h>
 #include <linux/module.h>
-#include <linux/moduleparam.h>
-#include <linux/spinlock.h>
 #include <linux/interrupt.h>
-#include <linux/io.h>
 #include <linux/slab.h>
 #include <linux/pci.h>
-#include <linux/usb.h>
-
-#include <linux/usb/hcd.h>
-#include <linux/usb/ch11.h>
 
 #include "core.h"
 #include "hcd.h"
