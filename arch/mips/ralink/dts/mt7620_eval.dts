@@ -1,0 +1,22 @@
+/dts-v1/;
+
+/include/ "mt7620.dtsi"
+
+/ {
+	#address-cells = <1>;
+	#size-cells = <1>;
+	compatible = "ralink,mt7620a-eval-board", "ralink,mt7620a-soc";
+	model = "Ralink MT7620 evaluation board";
+
+	memory@0 {
+		reg = <0x0 0x4000000>;
+	};
+
+	palmbus@10000000 {
+		sysc@0 {
+			ralink,pinmmux = "uartlite", "spi";
+			ralink,uartmux = "gpio";
+			ralink,wdtmux = <0>;
+		};
+	};
+};
