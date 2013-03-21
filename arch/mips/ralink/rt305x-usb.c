@@ -108,6 +108,7 @@ error_out:
 
 static u64 rt3352_ohci_dmamask = DMA_BIT_MASK(32);
 static u64 rt3352_ehci_dmamask = DMA_BIT_MASK(32);
+static u64 rt3050_dwc2_dmamask = DMA_BIT_MASK(32);
 
 void ralink_usb_platform(void)
 {
@@ -116,5 +117,9 @@ void ralink_usb_platform(void)
 				&rt3352_ohci_data, &rt3352_ohci_dmamask);
 		ralink_add_usb("ehci-platform",
 				&rt3352_ehci_data, &rt3352_ehci_dmamask);
+	}
+	if (soc_is_rt305x() || soc_is_rt3350()) {
+		ralink_add_usb("ralink,rt3050-otg",
+				NULL, &rt3050_dwc2_dmamask);
 	}
 }
