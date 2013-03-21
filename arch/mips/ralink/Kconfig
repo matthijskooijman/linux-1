@@ -8,6 +8,7 @@ choice
 
 	config SOC_RT288X
 		bool "RT288x"
+		select HW_HAS_PCI
 
 	config SOC_RT305X
 		bool "RT305x"
