@@ -1761,9 +1761,7 @@ static void dwc2_hc_chhltd_intr_dma(struct dwc2_hsotg *hsotg,
 		}
 	}
 
-	if (chan->halt_status == DWC2_HC_XFER_URB_DEQUEUE ||
-	    (chan->halt_status == DWC2_HC_XFER_AHB_ERR &&
-	     hsotg->core_params->dma_desc_enable <= 0)) {
+	if (chan->halt_status == DWC2_HC_XFER_AHB_ERR) {
 		if (hsotg->core_params->dma_desc_enable > 0)
 			dwc2_hcd_complete_xfer_ddma(hsotg, chan, chnum,
 						    chan->halt_status);
@@ -1937,7 +1935,26 @@ static void dwc2_hc_n_intr(struct dwc2_hsotg *hsotg, int chnum)
 	chan->hcint = hcint;
 	hcint &= hcintmsk;
 
+	/* If the channel was halted de to a dequeue, the qtd list might
+	 * be empty or at least the first entry will not be the active
+	 * qtd. In this case, take a shortcut and just release the
+	 * channel. */
+	if (chan->halt_status == DWC2_HC_XFER_URB_DEQUEUE) {
+		/* If the channel was halted, this should be the only
+		 * interrupt unmasked */
+		WARN_ON(hcint != HCINTMSK_CHHLTD);
+		if (hsotg->core_params->dma_desc_enable > 0)
+			dwc2_hcd_complete_xfer_ddma(hsotg, chan, chnum,
+						    chan->halt_status);
+		else
+			dwc2_release_channel(hsotg, chan, NULL,
+					     chan->halt_status);
+		return;
+	}
+
 	if (list_empty(&chan->qh->qtd_list)) {
+		/* TODO: Will this ever happen with the
+		 * DWC2_HC_XFER_URB_DEQUEUE handling above? */
 		dev_dbg(hsotg->dev, "## no QTD queued for channel %d ##\n",
 			chnum);
 		dev_dbg(hsotg->dev,
