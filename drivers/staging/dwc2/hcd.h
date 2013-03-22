@@ -496,6 +496,16 @@ extern void dwc2_hcd_qh_free_ddma(struct dwc2_hsotg *hsotg, struct dwc2_qh *qh);
 	((_qh_ptr_)->ep_type == USB_ENDPOINT_XFER_BULK || \
 	 (_qh_ptr_)->ep_type == USB_ENDPOINT_XFER_CONTROL)
 
+#ifdef CONFIG_USB_DWC2_DEBUG_PERIODIC
+#define dbg_hc(hc) (1)
+#define dbg_qh(hc) (1)
+#define dbg_urb(urb) (1)
+#else // !CONFIG_USB_DWC2_DEBUG_PERIODIC
+#define dbg_hc(hc) ((hc)->ep_type == USB_ENDPOINT_XFER_BULK || (hc)->ep_type == USB_ENDPOINT_XFER_CONTROL)
+#define dbg_qh(qh) ((qh)->ep_type == USB_ENDPOINT_XFER_BULK || (qh)->ep_type == USB_ENDPOINT_XFER_CONTROL)
+#define dbg_urb(urb) (usb_pipetype((urb)->pipe) == PIPE_BULK || usb_pipetype((urb)->pipe) == PIPE_CONTROL)
+#endif
+
 /* High bandwidth multiplier as encoded in highspeed endpoint descriptors */
 #define dwc2_hb_mult(wmaxpacketsize) (1 + (((wmaxpacketsize) >> 11) & 0x03))
 
