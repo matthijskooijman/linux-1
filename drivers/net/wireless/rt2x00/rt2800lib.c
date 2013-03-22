@@ -4171,7 +4171,10 @@ static void rt2800_init_rfcsr_5350(struct rt2x00_dev *rt2x00dev)
 	rt2800_rfcsr_write(rt2x00dev, 10, 0x53);
 	rt2800_rfcsr_write(rt2x00dev, 11, 0x4a);
 	rt2800_rfcsr_write(rt2x00dev, 12, 0x46);
-	rt2800_rfcsr_write(rt2x00dev, 13, 0x9f);
+	if (rt2x00dev->spec.clk_is_20mhz)
+		rt2800_rfcsr_write(rt2x00dev, 13, 0x1f);
+	else
+		rt2800_rfcsr_write(rt2x00dev, 13, 0x9f);
 	rt2800_rfcsr_write(rt2x00dev, 14, 0x00);
 	rt2800_rfcsr_write(rt2x00dev, 15, 0x00);
 	rt2800_rfcsr_write(rt2x00dev, 16, 0xc0);
@@ -5248,6 +5251,27 @@ static const struct rf_channel rf_vals_3x[] = {
 	{173, 0x61, 0, 9},
 };
 
+/*
+* RF value list for rt3322 and rt5350 with Xtal20MHz
+* Supports: 2.4 GHz (all) (RF3322/RT5350)
+*/
+static const struct rf_channel rf_vals_xtal20mhz_3x[] = {
+	{1,	0xE2,	2,	0x14},
+	{2,	0xE3,	2,	0x14},
+	{3,	0xE4,	2,	0x14},
+	{4,	0xE5,	2,	0x14},
+	{5,	0xE6,	2,	0x14},
+	{6,	0xE7,	2,	0x14},
+	{7,	0xE8,	2,	0x14},
+	{8,	0xE9,	2,	0x14},
+	{9,	0xEA,	2,	0x14},
+	{10,	0xEB,	2,	0x14},
+	{11,	0xEC,	2,	0x14},
+	{12,	0xED,	2,	0x14},
+	{13,	0xEE,	2,	0x14},
+	{14,	0xF0,	2,	0x18},
+};
+
 static int rt2800_probe_hw_mode(struct rt2x00_dev *rt2x00dev)
 {
 	struct hw_mode_spec *spec = &rt2x00dev->spec;
@@ -5325,8 +5349,6 @@ static int rt2800_probe_hw_mode(struct rt2x00_dev *rt2x00dev)
 		   rt2x00_rf(rt2x00dev, RF3022) ||
 		   rt2x00_rf(rt2x00dev, RF3290) ||
 		   rt2x00_rf(rt2x00dev, RF3320) ||
-		   rt2x00_rf(rt2x00dev, RF3322) ||
-		   rt2x00_rf(rt2x00dev, RF5350) ||
 		   rt2x00_rf(rt2x00dev, RF5360) ||
 		   rt2x00_rf(rt2x00dev, RF5370) ||
 		   rt2x00_rf(rt2x00dev, RF5372) ||
@@ -5338,6 +5360,13 @@ static int rt2800_probe_hw_mode(struct rt2x00_dev *rt2x00dev)
 		spec->supported_bands |= SUPPORT_BAND_5GHZ;
 		spec->num_channels = ARRAY_SIZE(rf_vals_3x);
 		spec->channels = rf_vals_3x;
+	} else if (rt2x00_rf(rt2x00dev, RF3322) ||
+		   rt2x00_rf(rt2x00dev, RF5350)) {
+		spec->num_channels = 14;
+		if (spec->clk_is_20mhz)
+			spec->channels = rf_vals_xtal20mhz_3x;
+		else
+			spec->channels = rf_vals_3x;
 	}
 
 	/*

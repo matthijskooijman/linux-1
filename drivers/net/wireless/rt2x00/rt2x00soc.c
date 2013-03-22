@@ -29,6 +29,10 @@
 #include <linux/module.h>
 #include <linux/platform_device.h>
 #include <linux/slab.h>
+#include <linux/of_device.h>
+
+#include <asm/mach-ralink/ralink_regs.h>
+#include <asm/mach-ralink/rt305x.h>
 
 #include "rt2x00.h"
 #include "rt2x00soc.h"
@@ -76,6 +80,7 @@ exit:
 
 int rt2x00soc_probe(struct platform_device *pdev, const struct rt2x00_ops *ops)
 {
+	struct device_node *np = pdev->dev.of_node;
 	struct ieee80211_hw *hw;
 	struct rt2x00_dev *rt2x00dev;
 	int retval;
@@ -94,6 +99,14 @@ int rt2x00soc_probe(struct platform_device *pdev, const struct rt2x00_ops *ops)
 	rt2x00dev->hw = hw;
 	rt2x00dev->irq = platform_get_irq(pdev, 0);
 	rt2x00dev->name = pdev->dev.driver->name;
+
+	/* rt3322 and rt5350 can have an external 20MHz crystal */
+	if (of_device_is_compatible(np, "ralink,rt3352-wmac") ||
+	    of_device_is_compatible(np, "ralink,rt5350-wmac")) {
+		u32 val = rt_sysc_r32(RT3352_SYSC_REG_SYSCFG0);
+		if ((val & RT3352_CLKCFG0_XTAL_SEL) == 0)
+			rt2x00dev->spec.clk_is_20mhz = 1;
+	}
 
 	rt2x00_set_chip_intf(rt2x00dev, RT2X00_CHIP_INTF_SOC);
 
