@@ -161,7 +161,9 @@ static void dwc2_rx_fifo_level_intr(struct dwc2_hsotg *hsotg)
 	u32 grxsts, chnum, bcnt, dpid, pktsts;
 	struct dwc2_host_chan *chan;
 
+	#ifdef CONFIG_USB_DWC2_DEBUG_PERIODIC
 	dev_vdbg(hsotg->dev, "--RxFIFO Level Interrupt--\n");
+	#endif
 
 	grxsts = readl(hsotg->regs + GRXSTSP);
 	chnum = grxsts >> GRXSTS_HCHNUM_SHIFT &
@@ -179,6 +181,7 @@ static void dwc2_rx_fifo_level_intr(struct dwc2_hsotg *hsotg)
 	pktsts = grxsts & GRXSTS_PKTSTS_MASK;
 
 	/* Packet Status */
+	#ifdef CONFIG_USB_DWC2_DEBUG_PERIODIC
 	dev_vdbg(hsotg->dev, "    Ch num = %d\n", chnum);
 	dev_vdbg(hsotg->dev, "    Count = %d\n", bcnt);
 	dev_vdbg(hsotg->dev, "    DPID = %d, chan.dpid = %d\n", dpid,
@@ -186,6 +189,7 @@ static void dwc2_rx_fifo_level_intr(struct dwc2_hsotg *hsotg)
 	dev_vdbg(hsotg->dev, "    PStatus = %d\n",
 		 pktsts >> GRXSTS_PKTSTS_SHIFT &
 		 GRXSTS_PKTSTS_MASK >> GRXSTS_PKTSTS_SHIFT);
+	#endif
 
 	switch (pktsts) {
 	case GRXSTS_PKTSTS_HCHIN:
@@ -230,7 +234,9 @@ static void dwc2_np_tx_fifo_empty_intr(struct dwc2_hsotg *hsotg)
  */
 static void dwc2_perio_tx_fifo_empty_intr(struct dwc2_hsotg *hsotg)
 {
+	#ifdef CONFIG_USB_DWC2_DEBUG_PERIODIC
 	dev_vdbg(hsotg->dev, "--Periodic TxFIFO Empty Interrupt--\n");
+	#endif
 	dwc2_hcd_queue_transactions(hsotg, DWC2_TRANSACTION_PERIODIC);
 }
 
@@ -646,7 +652,8 @@ static void dwc2_deactivate_qh(struct dwc2_hsotg *hsotg, struct dwc2_qh *qh,
 	int continue_split = 0;
 	struct dwc2_qtd *qtd;
 
-	dev_vdbg(hsotg->dev, "  %s(%p,%p,%d)\n", __func__, hsotg, qh, free_qtd);
+	if (dbg_qh(qh))
+		dev_vdbg(hsotg->dev, "  %s(%p,%p,%d)\n", __func__, hsotg, qh, free_qtd);
 
 	if (list_empty(&qh->qtd_list)) {
 		dev_dbg(hsotg->dev, "## QTD list empty ##\n");
@@ -695,8 +702,9 @@ static void dwc2_release_channel(struct dwc2_hsotg *hsotg,
 	u32 haintmsk;
 	int free_qtd = 0;
 
-	dev_vdbg(hsotg->dev, "  %s: channel %d, halt_status %d\n",
-		 __func__, chan->hc_num, halt_status);
+	if (dbg_hc(chan))
+		dev_vdbg(hsotg->dev, "  %s: channel %d, halt_status %d\n",
+			 __func__, chan->hc_num, halt_status);
 
 	switch (halt_status) {
 	case DWC2_HC_XFER_URB_COMPLETE:
@@ -791,10 +799,12 @@ static void dwc2_halt_channel(struct dwc2_hsotg *hsotg,
 			      struct dwc2_host_chan *chan, struct dwc2_qtd *qtd,
 			      enum dwc2_halt_status halt_status)
 {
-	dev_vdbg(hsotg->dev, "%s()\n", __func__);
+	if (dbg_hc(chan))
+		dev_vdbg(hsotg->dev, "%s()\n", __func__);
 
 	if (hsotg->core_params->dma_enable > 0) {
-		dev_vdbg(hsotg->dev, "DMA enabled\n");
+		if (dbg_hc(chan))
+			dev_vdbg(hsotg->dev, "DMA enabled\n");
 		dwc2_release_channel(hsotg, chan, qtd, halt_status);
 		return;
 	}
@@ -977,8 +987,9 @@ static void dwc2_hc_xfercomp_intr(struct dwc2_hsotg *hsotg,
 	enum dwc2_halt_status halt_status = DWC2_HC_XFER_COMPLETE;
 	int urb_xfer_done;
 
-	dev_vdbg(hsotg->dev,
-		 "--Host Channel %d Interrupt: Transfer Complete--\n", chnum);
+	if (dbg_hc(chan))
+		dev_vdbg(hsotg->dev,
+			 "--Host Channel %d Interrupt: Transfer Complete--\n", chnum);
 
 	if (hsotg->core_params->dma_desc_enable > 0) {
 		dwc2_hcd_complete_xfer_ddma(hsotg, chan, chnum, halt_status);
@@ -1079,7 +1090,9 @@ static void dwc2_hc_xfercomp_intr(struct dwc2_hsotg *hsotg,
 					    halt_status);
 		break;
 	case USB_ENDPOINT_XFER_ISOC:
+		#ifdef CONFIG_USB_DWC2_DEBUG_PERIODIC
 		dev_vdbg(hsotg->dev, "  Isochronous transfer complete\n");
+		#endif
 		if (qtd->isoc_split_pos == DWC2_HCSPLT_XACTPOS_ALL)
 			halt_status = dwc2_update_isoc_urb_state(hsotg, chan,
 					chnum, qtd, DWC2_HC_XFER_COMPLETE);
@@ -1197,8 +1210,9 @@ static void dwc2_hc_nak_intr(struct dwc2_hsotg *hsotg,
 			     struct dwc2_host_chan *chan, int chnum,
 			     struct dwc2_qtd *qtd)
 {
-	dev_vdbg(hsotg->dev, "--Host Channel %d Interrupt: NAK Received--\n",
-		 chnum);
+	if (dbg_hc(chan))
+		dev_vdbg(hsotg->dev, "--Host Channel %d Interrupt: NAK Received--\n",
+			 chnum);
 
 	/*
 	 * Handle NAK for IN/OUT SSPLIT/CSPLIT transfers, bulk, control, and
@@ -1274,8 +1288,9 @@ static void dwc2_hc_ack_intr(struct dwc2_hsotg *hsotg,
 {
 	struct dwc2_hcd_iso_packet_desc *frame_desc;
 
-	dev_vdbg(hsotg->dev, "--Host Channel %d Interrupt: ACK Received--\n",
-		 chnum);
+	if (dbg_hc(chan))
+		dev_vdbg(hsotg->dev, "--Host Channel %d Interrupt: ACK Received--\n",
+			 chnum);
 
 	if (chan->do_split) {
 		/* Handle ACK on SSPLIT. ACK should not occur in CSPLIT. */
@@ -1350,8 +1365,9 @@ static void dwc2_hc_nyet_intr(struct dwc2_hsotg *hsotg,
 			      struct dwc2_host_chan *chan, int chnum,
 			      struct dwc2_qtd *qtd)
 {
-	dev_vdbg(hsotg->dev, "--Host Channel %d Interrupt: NYET Received--\n",
-		 chnum);
+	if (dbg_hc(chan))
+		dev_vdbg(hsotg->dev, "--Host Channel %d Interrupt: NYET Received--\n",
+			 chnum);
 
 	/*
 	 * NYET on CSPLIT
@@ -1630,8 +1646,9 @@ static void dwc2_hc_frmovrun_intr(struct dwc2_hsotg *hsotg,
 {
 	enum dwc2_halt_status halt_status;
 
-	dev_dbg(hsotg->dev, "--Host Channel %d Interrupt: Frame Overrun--\n",
-		chnum);
+	if (dbg_hc(chan))
+		dev_dbg(hsotg->dev, "--Host Channel %d Interrupt: Frame Overrun--\n",
+			chnum);
 
 	switch (dwc2_hcd_get_pipe_type(&qtd->urb->pipe_info)) {
 	case USB_ENDPOINT_XFER_CONTROL:
@@ -1747,8 +1764,9 @@ static void dwc2_hc_chhltd_intr_dma(struct dwc2_hsotg *hsotg,
 	u32 hcintmsk;
 	int out_nak_enh = 0;
 
-	dev_vdbg(hsotg->dev,
-		 "--Host Channel %d Interrupt: DMA Channel Halted--\n", chnum);
+	if (dbg_hc(chan))
+		dev_vdbg(hsotg->dev,
+			 "--Host Channel %d Interrupt: DMA Channel Halted--\n", chnum);
 
 	/*
 	 * For core with OUT NAK enhancement, the flow for high-speed
@@ -1900,8 +1918,9 @@ static void dwc2_hc_chhltd_intr(struct dwc2_hsotg *hsotg,
 				struct dwc2_host_chan *chan, int chnum,
 				struct dwc2_qtd *qtd)
 {
-	dev_vdbg(hsotg->dev, "--Host Channel %d Interrupt: Channel Halted--\n",
-		 chnum);
+	if (dbg_hc(chan))
+		dev_vdbg(hsotg->dev, "--Host Channel %d Interrupt: Channel Halted--\n",
+			 chnum);
 
 	if (hsotg->core_params->dma_enable > 0) {
 		dwc2_hc_chhltd_intr_dma(hsotg, chan, chnum, qtd);
@@ -1919,15 +1938,18 @@ static void dwc2_hc_n_intr(struct dwc2_hsotg *hsotg, int chnum)
 	struct dwc2_host_chan *chan;
 	u32 hcint, hcintmsk;
 
-	dev_vdbg(hsotg->dev, "--Host Channel Interrupt--, Channel %d\n", chnum);
+	chan = hsotg->hc_ptr_array[chnum];
+
+	if (dbg_hc(chan))
+		dev_vdbg(hsotg->dev, "--Host Channel Interrupt--, Channel %d\n", chnum);
 
 	hcint = readl(hsotg->regs + HCINT(chnum));
 	hcintmsk = readl(hsotg->regs + HCINTMSK(chnum));
-	dev_vdbg(hsotg->dev,
+	if (dbg_hc(chan))
+		dev_vdbg(hsotg->dev,
 		 "  hcint 0x%08x, hcintmsk 0x%08x, hcint&hcintmsk 0x%08x\n",
 		 hcint, hcintmsk, hcint & hcintmsk);
 
-	chan = hsotg->hc_ptr_array[chnum];
 	if (!chan) {
 		dev_err(hsotg->dev, "## hc_ptr_array for channel is NULL ##\n");
 		writel(hcint, hsotg->regs + HCINT(chnum));
@@ -2026,10 +2048,12 @@ static void dwc2_hc_intr(struct dwc2_hsotg *hsotg)
 	u32 haint;
 	int i;
 
+	haint = readl(hsotg->regs + HAINT);
+	#ifdef CONFIG_DWC2_DEBUG_PERIODIC
 	dev_vdbg(hsotg->dev, "%s()\n", __func__);
 
-	haint = readl(hsotg->regs + HAINT);
 	dev_vdbg(hsotg->dev, "HAINT=%08x\n", haint);
+	#endif
 
 	for (i = 0; i < hsotg->core_params->host_channels; i++) {
 		if (haint & (1 << i))
@@ -2040,7 +2064,7 @@ static void dwc2_hc_intr(struct dwc2_hsotg *hsotg)
 /* This function handles interrupts for the HCD */
 int dwc2_hcd_intr(struct dwc2_hsotg *hsotg)
 {
-	u32 gintsts;
+	u32 gintsts, dbg_gintsts;
 	int retval = 0;
 
 	if (dwc2_check_core_status(hsotg) < 0) {
@@ -2060,10 +2084,15 @@ int dwc2_hcd_intr(struct dwc2_hsotg *hsotg)
 
 		retval = 1;
 
+		dbg_gintsts = gintsts;
 #ifndef DEBUG_SOF
-		/* Don't print debug message in the interrupt handler on SOF */
-		if (gintsts != GINTSTS_SOF)
+		dbg_gintsts &= ~GINTSTS_SOF;
 #endif
+#ifndef CONFIG_USB_DWC2_DEBUG_PERIODIC
+		dbg_gintsts &= ~(GINTSTS_HCHINT | GINTSTS_RXFLVL | GINTSTS_PTXFEMP) ;
+#endif
+		/* Only print if there are any non-suppressed interrupts left */
+		if (dbg_gintsts)
 			dev_vdbg(hsotg->dev,
 				 "DWC OTG HCD Interrupt Detected gintsts&gintmsk=0x%08x\n",
 				 gintsts);
@@ -2084,18 +2113,14 @@ int dwc2_hcd_intr(struct dwc2_hsotg *hsotg)
 		if (gintsts & GINTSTS_PTXFEMP)
 			dwc2_perio_tx_fifo_empty_intr(hsotg);
 
-#ifndef DEBUG_SOF
-		if (gintsts != GINTSTS_SOF) {
-#endif
+		if (dbg_gintsts) {
 			dev_vdbg(hsotg->dev,
 				 "DWC OTG HCD Finished Servicing Interrupts\n");
 			dev_vdbg(hsotg->dev,
 				 "DWC OTG HCD gintsts=0x%08x gintmsk=0x%08x\n",
 				 readl(hsotg->regs + GINTSTS),
 				 readl(hsotg->regs + GINTMSK));
-#ifndef DEBUG_SOF
 		}
-#endif
 	}
 
 	spin_unlock(&hsotg->lock);
