@@ -2137,6 +2137,15 @@ static void rt2800_config_channel_rf53xx(struct rt2x00_dev *rt2x00dev,
 	if (rf->channel <= 14) {
 		int idx = rf->channel-1;
 
+		if (rt2x00_rt(rt2x00dev, RT5350)) {
+			static const char r59_non_bt[] = {0x0b, 0x0b,
+				0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0a,
+				0x0a, 0x09, 0x08, 0x07, 0x07, 0x06};
+
+			rt2800_rfcsr_write(rt2x00dev, 59,
+					   r59_non_bt[idx]);
+		}
+
 		if (test_bit(CAPABILITY_BT_COEXIST, &rt2x00dev->cap_flags)) {
 			if (rt2x00_rt_rev_gte(rt2x00dev, RT5390, REV_RT5390F)) {
 				/* r55/r59 value array of channel 1~14 */
@@ -2218,6 +2227,7 @@ static void rt2800_config_channel(struct rt2x00_dev *rt2x00dev,
 	case RF3322:
 		rt2800_config_channel_rf3322(rt2x00dev, conf, rf, info);
 		break;
+	case RF5350:
 	case RF5360:
 	case RF5370:
 	case RF5372:
@@ -2231,6 +2241,7 @@ static void rt2800_config_channel(struct rt2x00_dev *rt2x00dev,
 
 	if (rt2x00_rf(rt2x00dev, RF3290) ||
 	    rt2x00_rf(rt2x00dev, RF3322) ||
+	    rt2x00_rf(rt2x00dev, RF5350) ||
 	    rt2x00_rf(rt2x00dev, RF5360) ||
 	    rt2x00_rf(rt2x00dev, RF5370) ||
 	    rt2x00_rf(rt2x00dev, RF5372) ||
@@ -2358,7 +2369,8 @@ static void rt2800_config_channel(struct rt2x00_dev *rt2x00dev,
 	/*
 	 * Clear update flag
 	 */
-	if (rt2x00_rt(rt2x00dev, RT3352)) {
+	if (rt2x00_rt(rt2x00dev, RT3352) ||
+	    rt2x00_rt(rt2x00dev, RT5350)) {
 		rt2800_bbp_read(rt2x00dev, 49, &bbp);
 		rt2x00_set_field8(&bbp, BBP49_UPDATE_FLAG, 0);
 		rt2800_bbp_write(rt2x00dev, 49, bbp);
@@ -2797,6 +2809,7 @@ void rt2800_vco_calibration(struct rt2x00_dev *rt2x00dev)
 		rt2800_rfcsr_write(rt2x00dev, 7, rfcsr);
 		break;
 	case RF3290:
+	case RF5350:
 	case RF5360:
 	case RF5370:
 	case RF5372:
@@ -3121,7 +3134,8 @@ static int rt2800_init_registers(struct rt2x00_dev *rt2x00dev)
 	} else if (rt2x00_rt(rt2x00dev, RT3572)) {
 		rt2800_register_write(rt2x00dev, TX_SW_CFG0, 0x00000400);
 		rt2800_register_write(rt2x00dev, TX_SW_CFG1, 0x00080606);
-	} else if (rt2x00_rt(rt2x00dev, RT5390) ||
+	} else if (rt2x00_rt(rt2x00dev, RT5350) ||
+		   rt2x00_rt(rt2x00dev, RT5390) ||
 		   rt2x00_rt(rt2x00dev, RT5392)) {
 		rt2800_register_write(rt2x00dev, TX_SW_CFG0, 0x00000404);
 		rt2800_register_write(rt2x00dev, TX_SW_CFG1, 0x00080606);
@@ -3503,6 +3517,10 @@ static int rt2800_init_bbp(struct rt2x00_dev *rt2x00dev)
 		rt2800_bbp_write(rt2x00dev, 4, 0x50);
 	}
 
+	if (rt2x00_rt(rt2x00dev, RT5350)) {
+		rt2800_bbp_write(rt2x00dev, 4, 0x50);
+	}
+
 	if (rt2x00_rt(rt2x00dev, RT3290) ||
 	    rt2x00_rt(rt2x00dev, RT5390) ||
 	    rt2x00_rt(rt2x00dev, RT5392)) {
@@ -3515,11 +3533,13 @@ static int rt2800_init_bbp(struct rt2x00_dev *rt2x00dev)
 	    rt2x00_rt(rt2x00dev, RT3290) ||
 	    rt2x00_rt(rt2x00dev, RT3352) ||
 	    rt2x00_rt(rt2x00dev, RT3572) ||
+	    rt2x00_rt(rt2x00dev, RT5350) ||
 	    rt2x00_rt(rt2x00dev, RT5390) ||
 	    rt2x00_rt(rt2x00dev, RT5392))
 		rt2800_bbp_write(rt2x00dev, 31, 0x08);
 
-	if (rt2x00_rt(rt2x00dev, RT3352))
+	if (rt2x00_rt(rt2x00dev, RT3352) ||
+	    rt2x00_rt(rt2x00dev, RT5350))
 		rt2800_bbp_write(rt2x00dev, 47, 0x48);
 
 	rt2800_bbp_write(rt2x00dev, 65, 0x2c);
@@ -3527,6 +3547,7 @@ static int rt2800_init_bbp(struct rt2x00_dev *rt2x00dev)
 
 	if (rt2x00_rt(rt2x00dev, RT3290) ||
 	    rt2x00_rt(rt2x00dev, RT3352) ||
+	    rt2x00_rt(rt2x00dev, RT5350) ||
 	    rt2x00_rt(rt2x00dev, RT5390) ||
 	    rt2x00_rt(rt2x00dev, RT5392))
 		rt2800_bbp_write(rt2x00dev, 68, 0x0b);
@@ -3536,6 +3557,7 @@ static int rt2800_init_bbp(struct rt2x00_dev *rt2x00dev)
 		rt2800_bbp_write(rt2x00dev, 73, 0x12);
 	} else if (rt2x00_rt(rt2x00dev, RT3290) ||
 		   rt2x00_rt(rt2x00dev, RT3352) ||
+		   rt2x00_rt(rt2x00dev, RT5350) ||
 		   rt2x00_rt(rt2x00dev, RT5390) ||
 		   rt2x00_rt(rt2x00dev, RT5392)) {
 		rt2800_bbp_write(rt2x00dev, 69, 0x12);
@@ -3572,7 +3594,8 @@ static int rt2800_init_bbp(struct rt2x00_dev *rt2x00dev)
 		rt2800_bbp_write(rt2x00dev, 79, 0x18);
 		rt2800_bbp_write(rt2x00dev, 80, 0x09);
 		rt2800_bbp_write(rt2x00dev, 81, 0x33);
-	} else if (rt2x00_rt(rt2x00dev, RT3352)) {
+	} else if (rt2x00_rt(rt2x00dev, RT3352) ||
+		rt2x00_rt(rt2x00dev, RT5350)) {
 		rt2800_bbp_write(rt2x00dev, 78, 0x0e);
 		rt2800_bbp_write(rt2x00dev, 80, 0x08);
 		rt2800_bbp_write(rt2x00dev, 81, 0x37);
@@ -3582,6 +3605,7 @@ static int rt2800_init_bbp(struct rt2x00_dev *rt2x00dev)
 
 	rt2800_bbp_write(rt2x00dev, 82, 0x62);
 	if (rt2x00_rt(rt2x00dev, RT3290) ||
+	    rt2x00_rt(rt2x00dev, RT5350) ||
 	    rt2x00_rt(rt2x00dev, RT5390) ||
 	    rt2x00_rt(rt2x00dev, RT5392))
 		rt2800_bbp_write(rt2x00dev, 83, 0x7a);
@@ -3591,6 +3615,7 @@ static int rt2800_init_bbp(struct rt2x00_dev *rt2x00dev)
 	if (rt2x00_rt_rev(rt2x00dev, RT2860, REV_RT2860D))
 		rt2800_bbp_write(rt2x00dev, 84, 0x19);
 	else if (rt2x00_rt(rt2x00dev, RT3290) ||
+		 rt2x00_rt(rt2x00dev, RT5350) ||
 		 rt2x00_rt(rt2x00dev, RT5390) ||
 		 rt2x00_rt(rt2x00dev, RT5392))
 		rt2800_bbp_write(rt2x00dev, 84, 0x9a);
@@ -3599,6 +3624,7 @@ static int rt2800_init_bbp(struct rt2x00_dev *rt2x00dev)
 
 	if (rt2x00_rt(rt2x00dev, RT3290) ||
 	    rt2x00_rt(rt2x00dev, RT3352) ||
+	    rt2x00_rt(rt2x00dev, RT5350) ||
 	    rt2x00_rt(rt2x00dev, RT5390) ||
 	    rt2x00_rt(rt2x00dev, RT5392))
 		rt2800_bbp_write(rt2x00dev, 86, 0x38);
@@ -3613,6 +3639,7 @@ static int rt2800_init_bbp(struct rt2x00_dev *rt2x00dev)
 
 	if (rt2x00_rt(rt2x00dev, RT3290) ||
 	    rt2x00_rt(rt2x00dev, RT3352) ||
+	    rt2x00_rt(rt2x00dev, RT5350) ||
 	    rt2x00_rt(rt2x00dev, RT5390) ||
 	    rt2x00_rt(rt2x00dev, RT5392))
 		rt2800_bbp_write(rt2x00dev, 92, 0x02);
@@ -3631,6 +3658,7 @@ static int rt2800_init_bbp(struct rt2x00_dev *rt2x00dev)
 	    rt2x00_rt(rt2x00dev, RT3290) ||
 	    rt2x00_rt(rt2x00dev, RT3352) ||
 	    rt2x00_rt(rt2x00dev, RT3572) ||
+	    rt2x00_rt(rt2x00dev, RT5350) ||
 	    rt2x00_rt(rt2x00dev, RT5390) ||
 	    rt2x00_rt(rt2x00dev, RT5392) ||
 	    rt2800_is_305x_soc(rt2x00dev))
@@ -3640,6 +3668,7 @@ static int rt2800_init_bbp(struct rt2x00_dev *rt2x00dev)
 
 	if (rt2x00_rt(rt2x00dev, RT3290) ||
 	    rt2x00_rt(rt2x00dev, RT3352) ||
+	    rt2x00_rt(rt2x00dev, RT5350) ||
 	    rt2x00_rt(rt2x00dev, RT5390) ||
 	    rt2x00_rt(rt2x00dev, RT5392))
 		rt2800_bbp_write(rt2x00dev, 104, 0x92);
@@ -3650,13 +3679,15 @@ static int rt2800_init_bbp(struct rt2x00_dev *rt2x00dev)
 		rt2800_bbp_write(rt2x00dev, 105, 0x1c);
 	else if (rt2x00_rt(rt2x00dev, RT3352))
 		rt2800_bbp_write(rt2x00dev, 105, 0x34);
-	else if (rt2x00_rt(rt2x00dev, RT5390) ||
+	else if (rt2x00_rt(rt2x00dev, RT5350) ||
+		 rt2x00_rt(rt2x00dev, RT5390) ||
 		 rt2x00_rt(rt2x00dev, RT5392))
 		rt2800_bbp_write(rt2x00dev, 105, 0x3c);
 	else
 		rt2800_bbp_write(rt2x00dev, 105, 0x05);
 
 	if (rt2x00_rt(rt2x00dev, RT3290) ||
+		rt2x00_rt(rt2x00dev, RT5350) ||
 	    rt2x00_rt(rt2x00dev, RT5390))
 		rt2800_bbp_write(rt2x00dev, 106, 0x03);
 	else if (rt2x00_rt(rt2x00dev, RT3352))
@@ -3666,10 +3697,12 @@ static int rt2800_init_bbp(struct rt2x00_dev *rt2x00dev)
 	else
 		rt2800_bbp_write(rt2x00dev, 106, 0x35);
 
-	if (rt2x00_rt(rt2x00dev, RT3352))
+	if (rt2x00_rt(rt2x00dev, RT3352) ||
+	    rt2x00_rt(rt2x00dev, RT5350))
 		rt2800_bbp_write(rt2x00dev, 120, 0x50);
 
 	if (rt2x00_rt(rt2x00dev, RT3290) ||
+	    rt2x00_rt(rt2x00dev, RT5350) ||
 	    rt2x00_rt(rt2x00dev, RT5390) ||
 	    rt2x00_rt(rt2x00dev, RT5392))
 		rt2800_bbp_write(rt2x00dev, 128, 0x12);
@@ -3679,13 +3712,15 @@ static int rt2800_init_bbp(struct rt2x00_dev *rt2x00dev)
 		rt2800_bbp_write(rt2x00dev, 135, 0xf6);
 	}
 
-	if (rt2x00_rt(rt2x00dev, RT3352))
+	if (rt2x00_rt(rt2x00dev, RT3352) ||
+	    rt2x00_rt(rt2x00dev, RT5350))
 		rt2800_bbp_write(rt2x00dev, 137, 0x0f);
 
 	if (rt2x00_rt(rt2x00dev, RT3071) ||
 	    rt2x00_rt(rt2x00dev, RT3090) ||
 	    rt2x00_rt(rt2x00dev, RT3390) ||
 	    rt2x00_rt(rt2x00dev, RT3572) ||
+	    rt2x00_rt(rt2x00dev, RT5350) ||
 	    rt2x00_rt(rt2x00dev, RT5390) ||
 	    rt2x00_rt(rt2x00dev, RT5392)) {
 		rt2800_bbp_read(rt2x00dev, 138, &value);
@@ -3722,7 +3757,8 @@ static int rt2800_init_bbp(struct rt2x00_dev *rt2x00dev)
 		rt2800_bbp_write(rt2x00dev, 3, value);
 	}
 
-	if (rt2x00_rt(rt2x00dev, RT3352)) {
+	if (rt2x00_rt(rt2x00dev, RT3352) ||
+	    rt2x00_rt(rt2x00dev, RT5350)) {
 		rt2800_bbp_write(rt2x00dev, 163, 0xbd);
 		/* Set ITxBF timeout to 0x9c40=1000msec */
 		rt2800_bbp_write(rt2x00dev, 179, 0x02);
@@ -3743,6 +3779,14 @@ static int rt2800_init_bbp(struct rt2x00_dev *rt2x00dev)
 
 		rt2800_bbp_write(rt2x00dev, 148, 0xc8);
 	}
+
+	if (rt2x00_rt(rt2x00dev, RT5350)) {
+		rt2800_bbp_write(rt2x00dev, 150, 0x40); /* Antenna Software OFDM */
+		rt2800_bbp_write(rt2x00dev, 151, 0x30); /* Antenna Software CCK */
+		rt2800_bbp_write(rt2x00dev, 152, 0xa3);
+		rt2800_bbp_write(rt2x00dev, 154, 0); /* Clear previously selected antenna */
+	}
+
 
 	if (rt2x00_rt(rt2x00dev, RT5390) ||
 	    rt2x00_rt(rt2x00dev, RT5392)) {
@@ -4112,6 +4156,73 @@ static void rt2800_init_rfcsr_3572(struct rt2x00_dev *rt2x00dev)
 	rt2800_rfcsr_write(rt2x00dev, 31, 0x10);
 }
 
+static void rt2800_init_rfcsr_5350(struct rt2x00_dev *rt2x00dev)
+{
+	rt2800_rfcsr_write(rt2x00dev, 0, 0xf0);
+	rt2800_rfcsr_write(rt2x00dev, 1, 0x23);
+	rt2800_rfcsr_write(rt2x00dev, 2, 0x50);
+	rt2800_rfcsr_write(rt2x00dev, 3, 0x08);
+	rt2800_rfcsr_write(rt2x00dev, 4, 0x49);
+	rt2800_rfcsr_write(rt2x00dev, 5, 0x10);
+	rt2800_rfcsr_write(rt2x00dev, 6, 0xe0);
+	rt2800_rfcsr_write(rt2x00dev, 7, 0x00);
+	rt2800_rfcsr_write(rt2x00dev, 8, 0xf1);
+	rt2800_rfcsr_write(rt2x00dev, 9, 0x02);
+	rt2800_rfcsr_write(rt2x00dev, 10, 0x53);
+	rt2800_rfcsr_write(rt2x00dev, 11, 0x4a);
+	rt2800_rfcsr_write(rt2x00dev, 12, 0x46);
+	rt2800_rfcsr_write(rt2x00dev, 13, 0x9f);
+	rt2800_rfcsr_write(rt2x00dev, 14, 0x00);
+	rt2800_rfcsr_write(rt2x00dev, 15, 0x00);
+	rt2800_rfcsr_write(rt2x00dev, 16, 0xc0);
+	rt2800_rfcsr_write(rt2x00dev, 18, 0x03);
+	rt2800_rfcsr_write(rt2x00dev, 19, 0x00);
+	rt2800_rfcsr_write(rt2x00dev, 20, 0x00);
+	rt2800_rfcsr_write(rt2x00dev, 21, 0x00);
+	rt2800_rfcsr_write(rt2x00dev, 22, 0x20);
+	rt2800_rfcsr_write(rt2x00dev, 23, 0x00);
+	rt2800_rfcsr_write(rt2x00dev, 24, 0x00);
+	rt2800_rfcsr_write(rt2x00dev, 25, 0x80);
+	rt2800_rfcsr_write(rt2x00dev, 26, 0x00);
+	rt2800_rfcsr_write(rt2x00dev, 27, 0x03);
+	rt2800_rfcsr_write(rt2x00dev, 28, 0x00);
+	rt2800_rfcsr_write(rt2x00dev, 29, 0xd0);
+	rt2800_rfcsr_write(rt2x00dev, 30, 0x10);
+	rt2800_rfcsr_write(rt2x00dev, 31, 0x80);
+	rt2800_rfcsr_write(rt2x00dev, 32, 0x80);
+	rt2800_rfcsr_write(rt2x00dev, 33, 0x00);
+	rt2800_rfcsr_write(rt2x00dev, 34, 0x07);
+	rt2800_rfcsr_write(rt2x00dev, 35, 0x12);
+	rt2800_rfcsr_write(rt2x00dev, 36, 0x00);
+	rt2800_rfcsr_write(rt2x00dev, 37, 0x08);
+	rt2800_rfcsr_write(rt2x00dev, 38, 0x85);
+	rt2800_rfcsr_write(rt2x00dev, 39, 0x1b);
+	rt2800_rfcsr_write(rt2x00dev, 40, 0x0b);
+	rt2800_rfcsr_write(rt2x00dev, 41, 0xbb);
+	rt2800_rfcsr_write(rt2x00dev, 42, 0xd5);
+	rt2800_rfcsr_write(rt2x00dev, 43, 0x9b);
+	rt2800_rfcsr_write(rt2x00dev, 44, 0x0c);
+	rt2800_rfcsr_write(rt2x00dev, 45, 0xa6);
+	rt2800_rfcsr_write(rt2x00dev, 46, 0x73);
+	rt2800_rfcsr_write(rt2x00dev, 47, 0x00);
+	rt2800_rfcsr_write(rt2x00dev, 48, 0x10);
+	rt2800_rfcsr_write(rt2x00dev, 49, 0x80);
+	rt2800_rfcsr_write(rt2x00dev, 50, 0x00);
+	rt2800_rfcsr_write(rt2x00dev, 51, 0x00);
+	rt2800_rfcsr_write(rt2x00dev, 52, 0x38);
+	rt2800_rfcsr_write(rt2x00dev, 53, 0x00);
+	rt2800_rfcsr_write(rt2x00dev, 54, 0x38);
+	rt2800_rfcsr_write(rt2x00dev, 55, 0x43);
+	rt2800_rfcsr_write(rt2x00dev, 56, 0x82);
+	rt2800_rfcsr_write(rt2x00dev, 57, 0x00);
+	rt2800_rfcsr_write(rt2x00dev, 58, 0x39);
+	rt2800_rfcsr_write(rt2x00dev, 59, 0x0b);
+	rt2800_rfcsr_write(rt2x00dev, 60, 0x45);
+	rt2800_rfcsr_write(rt2x00dev, 61, 0xd1);
+	rt2800_rfcsr_write(rt2x00dev, 62, 0x00);
+	rt2800_rfcsr_write(rt2x00dev, 63, 0x00);
+}
+
 static void rt2800_init_rfcsr_5390(struct rt2x00_dev *rt2x00dev)
 {
 	rt2800_rfcsr_write(rt2x00dev, 1, 0x0f);
@@ -4274,6 +4385,7 @@ static int rt2800_init_rfcsr(struct rt2x00_dev *rt2x00dev)
 	    !rt2x00_rt(rt2x00dev, RT3352) &&
 	    !rt2x00_rt(rt2x00dev, RT3390) &&
 	    !rt2x00_rt(rt2x00dev, RT3572) &&
+	    !rt2x00_rt(rt2x00dev, RT5350) &&
 	    !rt2x00_rt(rt2x00dev, RT5390) &&
 	    !rt2x00_rt(rt2x00dev, RT5392) &&
 	    !rt2800_is_305x_soc(rt2x00dev))
@@ -4284,6 +4396,7 @@ static int rt2800_init_rfcsr(struct rt2x00_dev *rt2x00dev)
 	 */
 
 	if (rt2x00_rt(rt2x00dev, RT3290) ||
+	    rt2x00_rt(rt2x00dev, RT5350) ||
 	    rt2x00_rt(rt2x00dev, RT5390) ||
 	    rt2x00_rt(rt2x00dev, RT5392)) {
 		rt2800_rfcsr_read(rt2x00dev, 2, &rfcsr);
@@ -4323,6 +4436,9 @@ static int rt2800_init_rfcsr(struct rt2x00_dev *rt2x00dev)
 		break;
 	case RT3572:
 		rt2800_init_rfcsr_3572(rt2x00dev);
+		break;
+	case RT5350:
+		rt2800_init_rfcsr_5350(rt2x00dev);
 		break;
 	case RT5390:
 		rt2800_init_rfcsr_5390(rt2x00dev);
@@ -4720,6 +4836,12 @@ static int rt2800_validate_eeprom(struct rt2x00_dev *rt2x00dev)
 		if (rt2x00_get_field16(word, EEPROM_NIC_CONF0_RXPATH) > 2)
 			rt2x00_set_field16(&word, EEPROM_NIC_CONF0_RXPATH, 2);
 		rt2x00_eeprom_write(rt2x00dev, EEPROM_NIC_CONF0, word);
+	} else if(rt2x00_rt(rt2x00dev, RT5350)) {
+		rt2x00_set_field16(&word, EEPROM_NIC_CONF0_RXPATH, 1);
+		rt2x00_set_field16(&word, EEPROM_NIC_CONF0_TXPATH, 1);
+		rt2x00_set_field16(&word, EEPROM_NIC_CONF0_RF_TYPE, RF3320);
+		rt2x00_eeprom_write(rt2x00dev, EEPROM_NIC_CONF0, word);
+		EEPROM(rt2x00dev, "rt5350: Ant: 0x%04x\n", word);
 	}
 
 	rt2x00_eeprom_read(rt2x00dev, EEPROM_NIC_CONF1, &word);
@@ -4844,6 +4966,8 @@ static int rt2800_init_eeprom(struct rt2x00_dev *rt2x00dev)
 	    rt2x00_get_field32(reg, MAC_CSR0_CHIPSET) == RT5390 ||
 	    rt2x00_get_field32(reg, MAC_CSR0_CHIPSET) == RT5392)
 		rt2x00_eeprom_read(rt2x00dev, EEPROM_CHIP_ID, &value);
+	else if(rt2x00_get_field32(reg, MAC_CSR0_CHIPSET) == RT5350)
+		value = RF5350;
 	else
 		value = rt2x00_get_field16(eeprom, EEPROM_NIC_CONF0_RF_TYPE);
 
@@ -4861,6 +4985,7 @@ static int rt2800_init_eeprom(struct rt2x00_dev *rt2x00dev)
 	case RT3352:
 	case RT3390:
 	case RT3572:
+	case RT5350:
 	case RT5390:
 	case RT5392:
 		break;
@@ -4882,6 +5007,7 @@ static int rt2800_init_eeprom(struct rt2x00_dev *rt2x00dev)
 	case RF3290:
 	case RF3320:
 	case RF3322:
+	case RF5350:
 	case RF5360:
 	case RF5370:
 	case RF5372:
@@ -5200,6 +5326,7 @@ static int rt2800_probe_hw_mode(struct rt2x00_dev *rt2x00dev)
 		   rt2x00_rf(rt2x00dev, RF3290) ||
 		   rt2x00_rf(rt2x00dev, RF3320) ||
 		   rt2x00_rf(rt2x00dev, RF3322) ||
+		   rt2x00_rf(rt2x00dev, RF5350) ||
 		   rt2x00_rf(rt2x00dev, RF5360) ||
 		   rt2x00_rf(rt2x00dev, RF5370) ||
 		   rt2x00_rf(rt2x00dev, RF5372) ||
@@ -5290,6 +5417,7 @@ static int rt2800_probe_hw_mode(struct rt2x00_dev *rt2x00dev)
 	case RF3290:
 	case RF5360:
 	case RF5370:
+	case RF5350:
 	case RF5372:
 	case RF5390:
 	case RF5392:
