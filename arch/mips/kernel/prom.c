@@ -88,6 +88,9 @@ void __init early_init_devtree(void *params)
 	of_scan_flat_dt(early_init_dt_scan_memory_arch, NULL);
 
 	/* try to load the mips machine name */
+	of_scan_flat_dt(early_init_dt_detect_memory, NULL);
+
+	/* try to load the mips machine name */
 	of_scan_flat_dt(early_init_dt_scan_model, NULL);
 }
 

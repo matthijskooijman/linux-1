@@ -20,6 +20,9 @@
 extern int early_init_dt_scan_memory_arch(unsigned long node,
 	const char *uname, int depth, void *data);
 
+extern int early_init_dt_detect_memory(unsigned long node,
+	const char *uname, int depth, void *data);
+
 extern void device_tree_init(void);
 
 static inline unsigned long pci_address_to_pio(phys_addr_t address)
