@@ -2434,7 +2434,7 @@ int dwc2_set_param_phy_utmi_width(struct dwc2_hsotg *hsotg, int val)
 			dev_err(hsotg->dev, "Wrong value for phy_utmi_width\n");
 			dev_err(hsotg->dev, "phy_utmi_width must be 8 or 16\n");
 		}
-		val = 8;
+		val = 16;
 		dev_dbg(hsotg->dev, "Setting phy_utmi_width to %d\n", val);
 		retval = -EINVAL;
 	}
