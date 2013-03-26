@@ -392,6 +392,13 @@
 
 #define HPTXFSIZ			HSOTG_REG(0x100)
 
+#define HPTXFSIZ_P_TXF_DEP_MASK		(0xffff << 16)
+#define HPTXFSIZ_P_TXF_DEP_SHIFT	16
+#define HPTXFSIZ_P_TXF_ST_ADDR_MASK	(0xffff << 0)
+#define HPTXFSIZ_P_TXF_ST_ADDR_SHIFT	0
+
+/* Device mode registers */
+
 #define DPTXFSIZN(_a)			HSOTG_REG(0x104 + (((_a) - 1) * 4))
 #define DPTXFSIZN_DP_TXF_SIZE_MASK	(0xffff << 16)
 #define DPTXFSIZN_DP_TXF_SIZE_SHIFT	16
@@ -400,13 +407,6 @@
 #define DPTXFSIZN_DP_TXF_SIZE(_x)	((_x) << 16)
 #define DPTXFSIZN_DP_TXF_ST_ADDR_MASK	(0xffff << 0)
 #define DPTXFSIZN_DP_TXF_ST_ADDR_SHIFT	0
-
-#define FIFOSIZE_DEPTH_MASK		(0xffff << 16)
-#define FIFOSIZE_DEPTH_SHIFT		16
-#define FIFOSIZE_STARTADDR_MASK		(0xffff << 0)
-#define FIFOSIZE_STARTADDR_SHIFT	0
-
-/* Device mode registers */
 
 #define DCFG				HSOTG_REG(0x800)
 #define DCFG_EPMISCNT_MASK		(0x1f << 18)

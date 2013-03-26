@@ -516,9 +516,9 @@ static void dwc2_config_fifos(struct dwc2_hsotg *hsotg)
 	dev_dbg(hsotg->dev, "initial gnptxfsiz=%08x\n",
 		readl(hsotg->regs + GNPTXFSIZ));
 	nptxfsiz = params->host_nperio_tx_fifo_size <<
-		   FIFOSIZE_DEPTH_SHIFT & FIFOSIZE_DEPTH_MASK;
+		   GNPTXFSIZ_NP_TXF_DEP_SHIFT & GNPTXFSIZ_NP_TXF_DEP_MASK;
 	nptxfsiz |= params->host_rx_fifo_size <<
-		    FIFOSIZE_STARTADDR_SHIFT & FIFOSIZE_STARTADDR_MASK;
+		    GNPTXFSIZ_NP_TXF_ST_ADDR_SHIFT & GNPTXFSIZ_NP_TXF_ST_ADDR_MASK;
 	writel(nptxfsiz, hsotg->regs + GNPTXFSIZ);
 	dev_dbg(hsotg->dev, "new gnptxfsiz=%08x\n",
 		readl(hsotg->regs + GNPTXFSIZ));
@@ -527,10 +527,10 @@ static void dwc2_config_fifos(struct dwc2_hsotg *hsotg)
 	dev_dbg(hsotg->dev, "initial hptxfsiz=%08x\n",
 		readl(hsotg->regs + HPTXFSIZ));
 	ptxfsiz = params->host_perio_tx_fifo_size <<
-		  FIFOSIZE_DEPTH_SHIFT & FIFOSIZE_DEPTH_MASK;
+		  HPTXFSIZ_P_TXF_DEP_SHIFT & HPTXFSIZ_P_TXF_DEP_MASK;
 	ptxfsiz |= (params->host_rx_fifo_size +
 		    params->host_nperio_tx_fifo_size) <<
-		   FIFOSIZE_STARTADDR_SHIFT & FIFOSIZE_STARTADDR_MASK;
+		   HPTXFSIZ_P_TXF_ST_ADDR_SHIFT & HPTXFSIZ_P_TXF_ST_ADDR_MASK;
 	writel(ptxfsiz, hsotg->regs + HPTXFSIZ);
 	dev_dbg(hsotg->dev, "new hptxfsiz=%08x\n",
 		readl(hsotg->regs + HPTXFSIZ));
