@@ -97,7 +97,7 @@ print_mtime() {
 }
 
 list_parse() {
-	[ ! -L "$1" ] && echo "$1 \\" || :
+	[ ! -L "$1" ] && echo "$1" | grep -q -v ':' && echo "$1 \\" || :
 }
 
 # for each file print a line in following format
