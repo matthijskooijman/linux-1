@@ -40,6 +40,7 @@
 #include <linux/slab.h>
 #include <linux/dma-mapping.h>
 #include <linux/platform_device.h>
+#include <linux/of.h>
 
 #include "core.h"
 #include "hcd.h"
@@ -96,6 +97,70 @@ static int dwc2_driver_remove(struct platform_device *dev)
 }
 
 /**
+ * dwc2_load_property() - Load a single property from the devicetree
+ * node into the given variable.
+ *
+ * @dev: Platform device
+ * @res: The variable to put the loaded value into
+ * @name: The name of the devicetree property to load
+ */
+static void dwc2_load_property(struct platform_device *dev, int *res, const char *name)
+{
+	int len;
+	const u32 *val;
+
+	val = of_get_property(dev->dev.of_node, name, &len);
+	if (!val)
+		return;
+
+	if (len != sizeof(*val)) {
+		dev_warn(&dev->dev, "Invalid value in devicetree for %s property, should be a single integer\n", name);
+		return;
+	}
+
+	*res = be32_to_cpu(*val);
+
+	dev_dbg(&dev->dev, "Loaded %s parameter from devicetree: %d\n", name, *res);
+}
+
+/**
+ * dwc2_load_properties() - Load all devicetree properties into the core
+ * params.
+ *
+ * @dev: Platform device
+ * @params: The core parameters to load the values into
+ */
+static void dwc2_load_properties(struct platform_device *dev, struct dwc2_core_params *params)
+{
+	dev_dbg(&dev->dev, "Loading parameters from devicetree node %s\n", dev->dev.of_node->name);
+	dwc2_load_property(dev, &params->dma_enable, "dma-enable");
+	dwc2_load_property(dev, &params->otg_cap, "otg-cap");
+	dwc2_load_property(dev, &params->otg_ver, "otg-ver");
+	dwc2_load_property(dev, &params->dma_enable, "dma-enable");
+	dwc2_load_property(dev, &params->dma_desc_enable, "dma-desc-enable");
+	dwc2_load_property(dev, &params->speed, "speed");
+	dwc2_load_property(dev, &params->enable_dynamic_fifo, "enable-dynamic-fifo");
+	dwc2_load_property(dev, &params->en_multiple_tx_fifo, "en-multiple-tx-fifo");
+	dwc2_load_property(dev, &params->host_rx_fifo_size, "host-rx-fifo-size");
+	dwc2_load_property(dev, &params->host_nperio_tx_fifo_size, "host-nperio-tx-fifo-size");
+	dwc2_load_property(dev, &params->host_perio_tx_fifo_size, "host-perio-tx-fifo-size");
+	dwc2_load_property(dev, &params->max_transfer_size, "max-transfer-size");
+	dwc2_load_property(dev, &params->max_packet_count, "max-packet-count");
+	dwc2_load_property(dev, &params->host_channels, "host-channels");
+	dwc2_load_property(dev, &params->phy_type, "phy-type");
+	dwc2_load_property(dev, &params->phy_utmi_width, "phy-utmi-width");
+	dwc2_load_property(dev, &params->phy_ulpi_ddr, "phy-ulpi-ddr");
+	dwc2_load_property(dev, &params->phy_ulpi_ext_vbus, "phy-ulpi-ext-vbus");
+	dwc2_load_property(dev, &params->i2c_enable, "i2c-enable");
+	dwc2_load_property(dev, &params->ulpi_fs_ls, "ulpi-fs-ls");
+	dwc2_load_property(dev, &params->host_support_fs_ls_low_power, "host-support-fs-ls-low-power");
+	dwc2_load_property(dev, &params->host_ls_low_power_phy_clk, "host-ls-low-power-phy-clk");
+	dwc2_load_property(dev, &params->ts_dline, "ts-dline");
+	dwc2_load_property(dev, &params->reload_ctl, "reload-ctl");
+	dwc2_load_property(dev, &params->ahb_single, "ahb-single");
+}
+
+/**
  * dwc2_driver_probe() - Called when the DWC_otg core is bound to the DWC_otg
  * driver
  *
@@ -133,6 +198,9 @@ static int dwc2_driver_probe(struct platform_device *dev)
 		dev_err(&dev->dev, "missing memory base resource\n");
 		return -EINVAL;
 	}
+
+	if (dev->dev.of_node)
+		dwc2_load_properties(dev, &dwc2_module_params);
 
 	/* TODO: Does this need a request, or just a ioremap? */
 	hsotg->regs = devm_ioremap_resource(&dev->dev, res);
