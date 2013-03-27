@@ -169,7 +169,8 @@ static inline void gpio_set_value_cansleep(unsigned gpio, int value)
 	WARN_ON(1);
 }
 
-static inline int gpio_export(unsigned gpio, bool direction_may_change)
+static inline int gpio_export_with_name(unsigned gpio,
+	bool direction_may_change, const char *name)
 {
 	/* GPIO can never have been requested or set as {in,out}put */
 	WARN_ON(1);
@@ -235,5 +236,25 @@ int devm_gpio_request(struct device *dev, unsigned gpio, const char *label);
 int devm_gpio_request_one(struct device *dev, unsigned gpio,
 			  unsigned long flags, const char *label);
 void devm_gpio_free(struct device *dev, unsigned int gpio);
+
+/**
+ * gpio_export - export a GPIO through sysfs
+ * @gpio: gpio to make available, already requested
+ * @direction_may_change: true if userspace may change gpio direction
+ * Context: arch_initcall or later
+ *
+ * When drivers want to make a GPIO accessible to userspace after they
+ * have requested it -- perhaps while debugging, or as part of their
+ * public interface -- they may use this routine.  If the GPIO can
+ * change direction (some can't) and the caller allows it, userspace
+ * will see "direction" sysfs attribute which may be used to change
+ * the gpio's direction.  A "value" attribute will always be provided.
+ *
+ * Returns zero on success, else an error.
+ */
+static inline int gpio_export(unsigned gpio,bool direction_may_change)
+{
+	return gpio_export_with_name(gpio, direction_may_change, NULL);
+}
 
 #endif /* __LINUX_GPIO_H */

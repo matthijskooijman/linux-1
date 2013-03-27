@@ -736,9 +736,10 @@ static struct class gpio_class = {
 
 
 /**
- * gpio_export - export a GPIO through sysfs
+ * gpio_export_with_name - export a GPIO through sysfs
  * @gpio: gpio to make available, already requested
  * @direction_may_change: true if userspace may change gpio direction
+ * @name: gpio name
  * Context: arch_initcall or later
  *
  * When drivers want to make a GPIO accessible to userspace after they
@@ -750,7 +751,7 @@ static struct class gpio_class = {
  *
  * Returns zero on success, else an error.
  */
-static int gpiod_export(struct gpio_desc *desc, bool direction_may_change)
+static int gpiod_export_with_name(struct gpio_desc *desc, bool direction_may_change, const char *name)
 {
 	unsigned long		flags;
 	int			status;
@@ -788,6 +789,8 @@ static int gpiod_export(struct gpio_desc *desc, bool direction_may_change)
 	spin_unlock_irqrestore(&gpio_lock, flags);
 
 	offset = gpio_chip_hwgpio(desc);
+	if (name)
+		ioname = name;
 	if (desc->chip->names && desc->chip->names[offset])
 		ioname = desc->chip->names[offset];
 
@@ -829,11 +832,16 @@ fail_unlock:
 	return status;
 }
 
-int gpio_export(unsigned gpio, bool direction_may_change)
+static int gpiod_export(struct gpio_desc *desc, bool direction_may_change)
 {
-	return gpiod_export(gpio_to_desc(gpio), direction_may_change);
+	return gpiod_export_with_name(desc, direction_may_change, NULL);
 }
-EXPORT_SYMBOL_GPL(gpio_export);
+
+int gpio_export_with_name(unsigned gpio, bool direction_may_change, const char *name)
+{
+	return gpiod_export_with_name(gpio_to_desc(gpio), direction_may_change, name);
+}
+EXPORT_SYMBOL_GPL(gpio_export_with_name);
 
 static int match_export(struct device *dev, const void *data)
 {
