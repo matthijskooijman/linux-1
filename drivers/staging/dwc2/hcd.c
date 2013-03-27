@@ -2806,7 +2806,7 @@ int dwc2_hcd_init(struct dwc2_hsotg *hsotg, int irq,
 			dev_warn(hsotg->dev,
 				 "can't enable workaround for >2GB RAM\n");
 	} else {
-		dma_set_mask(hsotg->dev, 0);
+		hsotg->dev->dma_mask = NULL;
 		dma_set_coherent_mask(hsotg->dev, 0);
 	}
 
