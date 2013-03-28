@@ -184,6 +184,8 @@
 #define GRXSTS_EPNUM_SHIFT		0
 
 #define GRXFSIZ				HSOTG_REG(0x024)
+#define GRXFSIZ_RXF_DEP_MASK		(0xffff << 0)
+#define GRXFSIZ_RXF_DEP_SHIFT		0
 
 #define GNPTXFSIZ			HSOTG_REG(0x028)
 #define GNPTXFSIZ_NP_TXF_DEP_MASK	(0xffff << 16)

@@ -398,7 +398,7 @@ int dwc2_core_init(struct dwc2_hsotg *hsotg, bool select_phy)
 
 	hsotg->total_fifo_size = hsotg->hwcfg3 >> GHWCFG3_DFIFO_DEPTH_SHIFT &
 			GHWCFG3_DFIFO_DEPTH_MASK >> GHWCFG3_DFIFO_DEPTH_SHIFT;
-	hsotg->rx_fifo_size = readl(hsotg->regs + GRXFSIZ);
+	hsotg->rx_fifo_size = (readl(hsotg->regs + GRXFSIZ) & GRXFSIZ_RXF_DEP_MASK) >> GRXFSIZ_RXF_DEP_SHIFT;
 	hsotg->nperio_tx_fifo_size =
 			readl(hsotg->regs + GNPTXFSIZ) >> 16 & 0xffff;
 
@@ -493,7 +493,7 @@ void dwc2_disable_host_interrupts(struct dwc2_hsotg *hsotg)
 static void dwc2_config_fifos(struct dwc2_hsotg *hsotg)
 {
 	struct dwc2_core_params *params = hsotg->core_params;
-	u32 rxfsiz, nptxfsiz, ptxfsiz, hptxfsiz, dfifocfg;
+	u32 rxfsiz, grxfsiz, nptxfsiz, ptxfsiz, hptxfsiz, dfifocfg;
 
 	if (!params->enable_dynamic_fifo)
 		return;
@@ -506,9 +506,12 @@ static void dwc2_config_fifos(struct dwc2_hsotg *hsotg)
 		params->host_perio_tx_fifo_size);
 
 	/* Rx FIFO */
-	dev_dbg(hsotg->dev, "initial grxfsiz=%08x\n",
-		readl(hsotg->regs + GRXFSIZ));
-	writel(params->host_rx_fifo_size, hsotg->regs + GRXFSIZ);
+	grxfsiz = readl(hsotg->regs + GRXFSIZ);
+	dev_dbg(hsotg->dev, "initial grxfsiz=%08x\n", grxfsiz);
+	grxfsiz &= ~GRXFSIZ_RXF_DEP_MASK;
+	grxfsiz |= params->host_rx_fifo_size <<
+	          GRXFSIZ_RXF_DEP_SHIFT & GRXFSIZ_RXF_DEP_MASK;
+	writel(grxfsiz, hsotg->regs + GRXFSIZ);
 	dev_dbg(hsotg->dev, "new grxfsiz=%08x\n", readl(hsotg->regs + GRXFSIZ));
 
 	/* Non-periodic Tx FIFO */
@@ -541,7 +544,7 @@ static void dwc2_config_fifos(struct dwc2_hsotg *hsotg)
 		 * include RxFIFO, NPTXFIFO and HPTXFIFO
 		 */
 		dfifocfg = readl(hsotg->regs + GDFIFOCFG);
-		rxfsiz = readl(hsotg->regs + GRXFSIZ) & 0x0000ffff;
+		rxfsiz = (readl(hsotg->regs + GRXFSIZ) & GRXFSIZ_RXF_DEP_MASK) >> GRXFSIZ_RXF_DEP_SHIFT;
 		nptxfsiz = readl(hsotg->regs + GNPTXFSIZ) >> 16 & 0xffff;
 		hptxfsiz = readl(hsotg->regs + HPTXFSIZ) >> 16 & 0xffff;
 		dfifocfg &= ~GDFIFOCFG_EPINFOBASE_MASK;
@@ -2112,7 +2115,7 @@ int dwc2_set_param_host_rx_fifo_size(struct dwc2_hsotg *hsotg, int val)
 	int valid = 1;
 	int retval = 0;
 
-	if (val < 16 || val > readl(hsotg->regs + GRXFSIZ))
+	if (val < 16 || val > (readl(hsotg->regs + GRXFSIZ) & GRXFSIZ_RXF_DEP_MASK) >> GRXFSIZ_RXF_DEP_SHIFT)
 		valid = 0;
 
 	if (!valid) {
@@ -2120,7 +2123,7 @@ int dwc2_set_param_host_rx_fifo_size(struct dwc2_hsotg *hsotg, int val)
 			dev_err(hsotg->dev,
 				"%d invalid for host_rx_fifo_size. Check HW configuration.\n",
 				val);
-		val = readl(hsotg->regs + GRXFSIZ);
+		val = (readl(hsotg->regs + GRXFSIZ) & GRXFSIZ_RXF_DEP_MASK) >> GRXFSIZ_RXF_DEP_SHIFT;
 		dev_dbg(hsotg->dev, "Setting host_rx_fifo_size to %d\n", val);
 		retval = -EINVAL;
 	}
