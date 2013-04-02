@@ -377,6 +377,7 @@ config ARCH_BCM2835
 	select PINCTRL_BCM2835
 	select SPARSE_IRQ
 	select USE_OF
+	select VIRT_TO_BUS
 	help
 	  This enables support for the Broadcom BCM2835 SoC. This SoC is
 	  use in the Raspberry Pi, and Roku 2 devices.
