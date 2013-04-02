@@ -499,7 +499,7 @@ void dwc2_disable_host_interrupts(struct dwc2_hsotg *hsotg)
 static void dwc2_config_fifos(struct dwc2_hsotg *hsotg)
 {
 	struct dwc2_core_params *params = hsotg->core_params;
-	u32 rxfsiz, grxfsiz, nptxfsiz, hptxfsiz, dfifocfg;
+	u32 grxfsiz, nptxfsiz, hptxfsiz, dfifocfg;
 
 	if (!params->enable_dynamic_fifo)
 		return;
@@ -550,11 +550,10 @@ static void dwc2_config_fifos(struct dwc2_hsotg *hsotg)
 		 * include RxFIFO, NPTXFIFO and HPTXFIFO
 		 */
 		dfifocfg = readl(hsotg->regs + GDFIFOCFG);
-		rxfsiz = (readl(hsotg->regs + GRXFSIZ) & GRXFSIZ_RXF_DEP_MASK) >> GRXFSIZ_RXF_DEP_SHIFT;
-		nptxfsiz = readl(hsotg->regs + GNPTXFSIZ) >> 16 & 0xffff;
-		hptxfsiz = readl(hsotg->regs + HPTXFSIZ) >> 16 & 0xffff;
 		dfifocfg &= ~GDFIFOCFG_EPINFOBASE_MASK;
-		dfifocfg |= (rxfsiz + nptxfsiz + hptxfsiz) <<
+		dfifocfg |= (params->host_rx_fifo_size +
+		             params->host_nperio_tx_fifo_size +
+			     params->host_perio_tx_fifo_size) <<
 			    GDFIFOCFG_EPINFOBASE_SHIFT &
 			    GDFIFOCFG_EPINFOBASE_MASK;
 		writel(dfifocfg, hsotg->regs + GDFIFOCFG);
@@ -886,7 +885,7 @@ void dwc2_hc_init(struct dwc2_hsotg *hsotg, struct dwc2_host_chan *chan)
 		dev_vdbg(hsotg->dev, "%s: Channel %d\n", __func__, hc_num);
 		dev_vdbg(hsotg->dev, "	 Dev Addr: %d\n", chan->dev_addr);
 		dev_vdbg(hsotg->dev, "	 Ep Num: %d\n", chan->ep_num);
-		dev_vdbg(hsotg->dev, "	 Is In: %d\n", chan_ep_is_in);
+		dev_vdbg(hsotg->dev, "	 Is In: %d\n", chan->ep_is_in);
 		dev_vdbg(hsotg->dev, "	 Is Low Speed: %d\n", chan->speed == USB_SPEED_LOW);
 		dev_vdbg(hsotg->dev, "	 Ep Type: %d\n", chan->ep_type);
 		dev_vdbg(hsotg->dev, "	 Max Pkt: %d\n", chan->max_packet);
